@@ -25,8 +25,7 @@ npm install --registry=https://registry.npm.taobao.org
 npm run dev
 ```
 
-[function]!
-(https://github.com/cjm-m/school-manager-user/tree/main/screenshots/function.png)
+![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/function.png)
 
 [Interface]!(https://github.com/cjm-m/school-manager-user/screenshots/Interface.png)
 
