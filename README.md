@@ -26,7 +26,7 @@ npm run dev
 ```
 
 [function]!
-(https://github.com/cjm-m/school-manager-user/screenshots/function.png)
+(https://github.com/cjm-m/school-manager-user/tree/main/screenshots/function.png)
 
 [Interface]!(https://github.com/cjm-m/school-manager-user/screenshots/Interface.png)
 
