@@ -6,7 +6,7 @@
 
 如果你想要根据用户角色来动态生成侧边栏和 router，你可以使用该分支[permission-control](https://github.com/PanJiaChen/vue-admin-template/tree/permission-control)
 
-##以下是后台管理的操作
+## 以下是后台管理的操作
 
 ```bash
 # 克隆项目
@@ -413,14 +413,14 @@ index.vue ↓
 
 ```
 
-#全局安装koa-generator,执行下面命令
+# 全局安装koa-generator,执行下面命令
 
 ```bash
 npm install -g koa-generator
 
 ```
 
-#构建koa2项目代码如下
+# 构建koa2项目代码如下
 
 ```bash 
 koa2 projectName
@@ -499,29 +499,29 @@ http://localhost:3000/
 
 出现koa2的欢迎界面就代表成功了。
 
-##安装本地mongodb或者在mongodb官网新建免费的云端服务器。
+## 安装本地mongodb或者在mongodb官网新建免费的云端服务器。
 
 >本人在这里用的mongodb免费云端数据库。
 抱歉密码不能公开，请自行换成自己的密码
 链接如下：
 
-###本人数据库名为test
+### 本人数据库名为test
 
 ```bash
 mongodb+srv://xxwozixin:<password>@cluster0-7d5kk.mongodb.net/test?retryWrites=true&w=majority
 
 ```
 
-###安装mongoose
+### 安装mongoose
 
 ```bash
 npm install mongoose --save
 ```
 
-###在建好的nodejs项目中根目录创建db目录
+### 在建好的nodejs项目中根目录创建db目录
 - 作者用的webstorm,可以根据自己需要下载编辑器
 
-###下面代码中连接密码需要修改成自己的
+### 下面代码中连接密码需要修改成自己的
 
 config.js ↓
 ```bash
@@ -744,7 +744,7 @@ router.get('/bar', function (ctx, next) {
 module.exports = router
 ```
 
-###重启项目
+### 重启项目
 - 关掉前面我们启动的服务在运行
 
 ```bash
@@ -755,9 +755,9 @@ npm run dev
 
 ![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/connect.png)
 
-##目标：学校管理
+## 目标：学校管理
 
-###一、后台三步骤：
+### 一、后台三步骤：
 1、打开projectName文件，在models目录下创建school.js文件，接着文件操作：
 
 ```bash
@@ -893,7 +893,7 @@ app.on('error', (err, ctx) => {
 module.exports = app
 ```
 
-###二、从前端（vue-admin-template）添加学校模块
+### 二、从前端（vue-admin-template）添加学校模块
 1、在src/views目录下添加school目录（模块），如图所示：
 
 ![school](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/school.png)
@@ -1199,7 +1199,7 @@ index.vue为目录文件，用于显示结果:
   
 ```
  
- ###创建学院管理模块（学院和学校关联起来）
+ ### 创建学院管理模块（学院和学校关联起来）
  
  一、后台三步骤：
  
@@ -1330,7 +1330,7 @@ app.on('error', (err, ctx) => {
 
 module.exports = app
 ```
-###二、从前端（vue-admin-template）添加学院模块
+### 二、从前端（vue-admin-template）添加学院模块
 1、在src/views目录下添加academy目录（模块），如图所示：
 
 ![academy](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/academy.png)
@@ -1774,3 +1774,665 @@ vue-admin-template/src/views/academy/index.vue：
   }
 </style>
 ```
+2、在router下的index.js中添加academy模块的路由：
+
+添加部分：
+
+![route](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/route.png)
+
+vue-admin-template/src/router/index.js：
+```bash
+import Vue from 'vue'
+import Router from 'vue-router'
+
+Vue.use(Router)
+
+/* Layout */
+import Layout from '@/layout'
+
+/**
+ * Note: sub-menu only appear when route children.length >= 1
+ * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
+ *
+ * hidden: true                   if set true, item will not show in the sidebar(default is false)
+ * alwaysShow: true               if set true, will always show the root menu
+ *                                if not set alwaysShow, when item has more than one children route,
+ *                                it will becomes nested mode, otherwise not show the root menu
+ * redirect: noRedirect           if set noRedirect will no redirect in the breadcrumb
+ * name:'router-name'             the name is used by <keep-alive> (must set!!!)
+ * meta : {
+    roles: ['admin','editor']    control the page roles (you can set multiple roles)
+    title: 'title'               the name show in sidebar and breadcrumb (recommend set)
+    icon: 'svg-name'             the icon show in the sidebar
+    breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
+    activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
+  }
+ */
+
+/**
+ * constantRoutes
+ * a base page that does not have permission requirements
+ * all roles can be accessed
+ */
+export const constantRoutes = [
+  {
+    path: '/login',
+    component: () => import('@/views/login/index'),
+    hidden: true
+  },
+
+  {
+    path: '/school',
+    component: Layout,
+    meta: { title: '学校管理', icon: 'example' },
+    redirect: 'school',
+    children: [{
+      path: 'school',
+      name: 'school',
+      component: () => import('@/views/school'),
+      meta: { title: '学校管理', icon: 'school' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/school/editor'),
+        meta: { title: '添加学校', icon: 'school' }
+      }]
+  },
+
+  {
+    path: '/academy',
+    component: Layout,
+    meta: { title: '学院管理', icon: 'example' },
+    redirect: 'academy',
+    children: [{
+      path: 'academy',
+      name: 'academy',
+      component: () => import('@/views/academy'),
+      meta: { title: '学院管理', icon: 'academy' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/academy/editor'),
+        meta: { title: '添加学院', icon: 'academy' }
+      }]
+  },
+
+  {
+    path: '/404',
+    component: () => import('@/views/404'),
+    hidden: true
+  },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/dashboard',
+    children: [{
+      path: 'dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/dashboard/index'),
+      meta: { title: 'Dashboard', icon: 'dashboard' }
+    }]
+  },
+  // 404 page must be placed at the end !!!
+  { path: '*', redirect: '/404', hidden: true }
+]
+
+const createRouter = () => new Router({
+  // mode: 'history', // require service support
+  scrollBehavior: () => ({ y: 0 }),
+  routes: constantRoutes
+})
+
+const router = createRouter()
+
+// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+export function resetRouter() {
+  const newRouter = createRouter()
+  router.matcher = newRouter.matcher // reset router
+}
+
+export default router
+```
+### 效果图如下：
+
+![effect](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/effect.png)
+
+## 班级管理篇
+（可将学校、学院与班级关联起来）
+### 一、从后端（projectName）添加班级模块
+1、在models目录下添加classs.js：
+
+projectName/db/models/classs.js：
+
+```bash
+const mongoose = require('mongoose')
+const Schema= mongoose.Schema
+const feld={
+   name: String,
+   //人物标签
+   major:String,
+   renshu: Number,
+   school : { type: Schema.Types.ObjectId, ref: 'School' },
+   academy : { type: Schema.Types.ObjectId, ref: 'Academy' }
+}
+//自动添加更新时间创建时间:
+let personSchema = new mongoose.Schema(feld, {timestamps: {createdAt: 'created', updatedAt: 'updated'}})
+module.exports= mongoose.model('Classs',personSchema)
+```
+2、在routes目录下添加classs.js：
+
+projectName/routes/classs.js：
+```bash
+const router = require('koa-router')()
+let Model = require("../db/models/classs");
+router.prefix('/classs')
+
+router.get('/', function (ctx, next) {
+    ctx.body = 'this is a users response!'
+})
+
+router.post('/add', async function (ctx, next) {
+    console.log(ctx.request.body)
+    let model = new Model(ctx.request.body);
+    model = await model.save();
+    console.log('user',model)
+    ctx.body = model
+})
+
+router.post('/find', async function (ctx, next) {
+    let models = await Model.
+    find({}).populate('academy').populate('school')
+    ctx.body = models
+})
+
+router.post('/get', async function (ctx, next) {
+    // let users = await User.
+    // find({})
+    console.log(ctx.request.body)
+    let model = await Model.find(ctx.request.body)
+    console.log(model)
+    ctx.body = model
+})
+
+router.post('/update', async function (ctx, next) {
+    console.log(ctx.request.body)
+    let pbj = await Model.update({ _id: ctx.request.body._id }, ctx.request.body);
+    ctx.body = pbj
+})
+router.post('/delete', async function (ctx, next) {
+    console.log(ctx.request.body)
+    await Model.remove({ _id: ctx.request.body._id });
+    ctx.body = 'shibai '
+})
+
+module.exports = router
+```
+3、在app.js中加上classs模块的路由：
+
+添加部分为：
+![class](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/class.png)
+projectName/app.js：
+```bash
+const Koa = require('koa')
+const app = new Koa()
+const views = require('koa-views')
+const json = require('koa-json')
+const onerror = require('koa-onerror')
+const bodyparser = require('koa-bodyparser')
+const logger = require('koa-logger')
+
+
+const mongoose = require('mongoose')
+const dbconfig = require('./db/config')
+mongoose.connect(dbconfig.dbs,{useNewUrlParser: true,useUnifiedTopology: true})
+const db = mongoose.connection
+db.on('error',console.error.bind(console,'connection error:'));
+db.once('open',function () {
+  console.log('mongoose 连接成功')
+});
+// error handler
+onerror(app)
+
+// middlewares
+app.use(bodyparser({
+  enableTypes:['json', 'form', 'text']
+}))
+app.use(json())
+app.use(logger())
+app.use(require('koa-static')(__dirname + '/public'))
+
+app.use(views(__dirname + '/views', {
+  extension: 'pug'
+}))
+
+// logger
+app.use(async (ctx, next) => {
+  const start = new Date()
+  await next()
+  const ms = new Date() - start
+  console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
+})
+
+
+// routes
+const index = require('./routes/index')
+app.use(index.routes(), index.allowedMethods())
+const users = require('./routes/users')
+app.use(users.routes(), users.allowedMethods())
+const school = require('./routes/school')
+app.use(school.routes(),school.allowedMethods())
+const academy = require('./routes/academy')
+app.use(academy.routes(), academy.allowedMethods())
+const classs = require('./routes/classs')
+app.use(classs.routes(), classs.allowedMethods())
+// error-handling
+
+
+
+
+app.on('error', (err, ctx) => {
+  console.error('server error', err, ctx)
+});
+
+module.exports = app
+```
+### 二、从前端（vue-admin-template）添加班级模块
+1、在src/views目录下添加classs目录（模块），如图所示：
+
+![class-content](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/class-content.png)
+
+#### 1、在classs目录下添加editor.vue：
+
+vue-admin-template/src/views/classs/editor.vue：
+```bash
+<template>
+<template>
+  <div class="dashboard-container">
+    <el-form ref="form" :model="form" label-width="80px">
+      <el-form-item label="所属学校">
+        <el-select v-model="form.school" placeholder="请选择" @change="schoolChange">
+          <el-option
+            v-for="item in schools"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <!--      编辑框：学院选择列表-->
+      <el-form-item label="所属学院">
+        <el-select v-model="form.academy" placeholder="请选择">
+          <el-option
+            v-for="item in academys"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="班级名称">
+        <el-input v-model="form.name"></el-input>
+      </el-form-item>
+      <el-form-item label="专业">
+        <el-input v-model="form.level"></el-input>
+      </el-form-item>
+      <el-form-item label="人数">
+        <el-input v-model="form.renshu"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onSubmit">立即创建</el-button>
+        <el-button>取消</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'classs',
+    computed: {
+      ...mapGetters([
+        'name'
+      ])
+    },
+    data(){
+      return{
+        schools:[],
+        academys:[],
+        //列表内容
+        options: [
+        ],
+        apiModel:'classs',
+        form:{}
+      }
+    },
+    methods:{
+      onSubmit(){
+        if(this.form._id){
+          this.$http.post(`/api/${this.apiModel}/update`,this.form).then(res => {
+            console.log('bar:', res)
+            this.$router.push({path:this.apiModel})
+            this.form={}
+          })
+        }else
+        {
+          this.$http.post('/api/'+this.apiModel+'/add',this.form).then(res => {
+            console.log('bar:', res)
+            this.$router.push({path:this.apiModel})
+            this.form={}
+          })
+        }
+      },
+      schoolChange(val1){
+        //显示学院选择栏目
+        this.$http.post('/api/academy/get',{school:val1}).then(res => {
+          if(res&&res.length>0){
+            this.academys = res
+            console.log('res:', res)
+          }
+        })
+      }
+    },
+    mounted() {
+      if(this.$route.query._id){
+        this.$http.post('/api/'+this.apiModel+'/get',{_id:this.$route.query._id}).then(res => {
+          if(res&&res.length>0){
+            this.form = res[0]
+            this.schoolChange(this.form.school)
+          }
+        })
+      }
+
+      //显示学校选择栏目
+      this.$http.post('/api/school/find').then(res => {
+        if(res&&res.length>0){
+          this.schools = res
+          console.log('res:', res)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .dashboard {
+    &-container {
+      margin: 30px;
+    }
+    &-text {
+      font-size: 30px;
+      line-height: 46px;
+    }
+  }
+</style>  <div class="dashboard-container">
+    <el-form ref="form" :model="form" label-width="80px">
+      <el-form-item label="所属学校">
+        <el-select v-model="form.school" placeholder="请选择" @change="schoolChange">
+          <el-option
+            v-for="item in schools"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <!--      编辑框：学院选择列表-->
+      <el-form-item label="所属学院">
+        <el-select v-model="form.academy" placeholder="请选择">
+          <el-option
+            v-for="item in academys"
+            :key="item._id"
+            :label="item.name"
+            :value="item._id">
+          </el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="班级名称">
+        <el-input v-model="form.name"></el-input>
+      </el-form-item>
+      <el-form-item label="专业">
+        <el-input v-model="form.level"></el-input>
+      </el-form-item>
+      <el-form-item label="人数">
+        <el-input v-model="form.renshu"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onSubmit">立即创建</el-button>
+        <el-button>取消</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'classs',
+    computed: {
+      ...mapGetters([
+        'name'
+      ])
+    },
+    data(){
+      return{
+        schools:[],
+        academys:[],
+        //列表内容
+        options: [
+        ],
+        apiModel:'classs',
+        form:{}
+      }
+    },
+    methods:{
+      onSubmit(){
+        if(this.form._id){
+          this.$http.post(`/api/${this.apiModel}/update`,this.form).then(res => {
+            console.log('bar:', res)
+            this.$router.push({path:this.apiModel})
+            this.form={}
+          })
+        }else
+        {
+          this.$http.post('/api/'+this.apiModel+'/add',this.form).then(res => {
+            console.log('bar:', res)
+            this.$router.push({path:this.apiModel})
+            this.form={}
+          })
+        }
+      },
+      schoolChange(val1){
+        //显示学院选择栏目
+        this.$http.post('/api/academy/get',{school:val1}).then(res => {
+          if(res&&res.length>0){
+            this.academys = res
+            console.log('res:', res)
+          }
+        })
+      }
+    },
+    mounted() {
+      if(this.$route.query._id){
+        this.$http.post('/api/'+this.apiModel+'/get',{_id:this.$route.query._id}).then(res => {
+          if(res&&res.length>0){
+            this.form = res[0]
+            this.schoolChange(this.form.school)
+          }
+        })
+      }
+
+      //显示学校选择栏目
+      this.$http.post('/api/school/find').then(res => {
+        if(res&&res.length>0){
+          this.schools = res
+          console.log('res:', res)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .dashboard {
+    &-container {
+      margin: 30px;
+    }
+    &-text {
+      font-size: 30px;
+      line-height: 46px;
+    }
+  }
+
+```
+
+2、在router下的index.js中添加classs模块的路由：
+
+添加部分：
+
+![class-route](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/class-route.png)
+
+vue-admin-template/src/router/index.js：
+
+```bash
+import Vue from 'vue'
+import Router from 'vue-router'
+
+Vue.use(Router)
+
+/* Layout */
+import Layout from '@/layout'
+
+/**
+ * Note: sub-menu only appear when route children.length >= 1
+ * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
+ *
+ * hidden: true                   if set true, item will not show in the sidebar(default is false)
+ * alwaysShow: true               if set true, will always show the root menu
+ *                                if not set alwaysShow, when item has more than one children route,
+ *                                it will becomes nested mode, otherwise not show the root menu
+ * redirect: noRedirect           if set noRedirect will no redirect in the breadcrumb
+ * name:'router-name'             the name is used by <keep-alive> (must set!!!)
+ * meta : {
+    roles: ['admin','editor']    control the page roles (you can set multiple roles)
+    title: 'title'               the name show in sidebar and breadcrumb (recommend set)
+    icon: 'svg-name'             the icon show in the sidebar
+    breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
+    activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
+  }
+ */
+
+/**
+ * constantRoutes
+ * a base page that does not have permission requirements
+ * all roles can be accessed
+ */
+export const constantRoutes = [
+  {
+    path: '/login',
+    component: () => import('@/views/login/index'),
+    hidden: true
+  },
+
+  {
+    path: '/school',
+    component: Layout,
+    meta: { title: '学校管理', icon: 'example' },
+    redirect: 'school',
+    children: [{
+      path: 'school',
+      name: 'school',
+      component: () => import('@/views/school'),
+      meta: { title: '学校管理', icon: 'school' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/school/editor'),
+        meta: { title: '添加学校', icon: 'school' }
+      }]
+  },
+
+  {
+    path: '/academy',
+    component: Layout,
+    meta: { title: '学院管理', icon: 'example' },
+    redirect: 'academy',
+    children: [{
+      path: 'academy',
+      name: 'academy',
+      component: () => import('@/views/academy'),
+      meta: { title: '学院管理', icon: 'academy' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/academy/editor'),
+        meta: { title: '添加学院', icon: 'academy' }
+      }]
+  },
+
+  {
+    path: '/classs',
+    component: Layout,
+    meta: { title: '班级管理', icon: 'example' },
+    redirect: 'classs',
+    children: [{
+      path: 'classs',
+      name: 'classs',
+      component: () => import('@/views/classs'),
+      meta: { title: '班级管理', icon: 'classs' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/classs/editor'),
+        meta: { title: '添加班级', icon: 'classs' }
+      }]
+  },
+
+  {
+    path: '/404',
+    component: () => import('@/views/404'),
+    hidden: true
+  },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/dashboard',
+    children: [{
+      path: 'dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/dashboard/index'),
+      meta: { title: 'Dashboard', icon: 'dashboard' }
+    }]
+  },
+  // 404 page must be placed at the end !!!
+  { path: '*', redirect: '/404', hidden: true }
+]
+
+const createRouter = () => new Router({
+  // mode: 'history', // require service support
+  scrollBehavior: () => ({ y: 0 }),
+  routes: constantRoutes
+})
+
+const router = createRouter()
+
+// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+export function resetRouter() {
+  const newRouter = createRouter()
+  router.matcher = newRouter.matcher // reset router
+}
+
+export default router
+```
+#### 这样班级管理模块就构建好了，最终的效果图：
+
+![class-effect](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/class-effect.png)
