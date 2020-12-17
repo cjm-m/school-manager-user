@@ -2507,7 +2507,7 @@ router.post('/delete', async function (ctx, next) {
 })
 module.exports = router
 ```
-#####3、在app.js中加上student模块的路由：
+##### 3、在app.js中加上student模块的路由：
 
 添加部分为：
 
@@ -2581,8 +2581,8 @@ app.on('error', (err, ctx) => {
 
 module.exports = app
 ```
-####二、从前端（vue-admin-template）添加学生模块
-#####1、在src/views目录下添加student目录（模块），如图所示：
+#### 二、从前端（vue-admin-template）添加学生模块
+##### 1、在src/views目录下添加student目录（模块），如图所示：
 ![student-content](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-content.png)
 
 在student目录下添加editor.vue：
@@ -3159,11 +3159,11 @@ vue-admin-template/src/views/student/index.vue：
     }
   }
 ```
-####效果图：
+#### 效果图：
 
 ![student-effect](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-effect.png)
 
-#####2、在router下的index.js中添加student模块的路由：
+##### 2、在router下的index.js中添加student模块的路由：
 添加部分：
 
 ![student-route2](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-route2.png)
@@ -3323,6 +3323,6 @@ export function resetRouter() {
 
 export default router
 ```
-###效果图：
+### 效果图：
 
 ![student-effect2](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-effect2.png)
