@@ -755,4 +755,448 @@ npm run dev
 
 ![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/connect.png)
 
+##目标：学校管理
 
+###一、后台三步骤：
+1、打开projectName文件，在models目录下创建school.js文件，接着文件操作：
+
+```bash
+const mongoose = require('mongoose')
+const feld={
+    name: String,
+    //人物标签
+    where:String,
+    leixing: String
+}
+//自动添加更新时间创建时间:
+let personSchema = new mongoose.Schema(feld, {timestamps: {createdAt: 'created', updatedAt: 'updated'}})
+module.exports= mongoose.model('School',personSchema)
+```
+
+2、在routes目录下添加school.js：
+
+projectName/routes/school.js：
+
+```bash
+const router = require('koa-router')()
+//建立模块，require(“../db/models/文件名”)
+let Model = require("../db/models/school");
+router.prefix('/school')
+
+router.get('/', function (ctx, next) {
+    ctx.body = 'this is a users response!'
+})
+
+//数据库增删改查
+router.post('/add', async function (ctx, next) {
+    console.log(ctx.request.body)
+    let model = new Model(ctx.request.body);
+    model = await model.save();
+    console.log('user',model)
+    ctx.body = model
+})
+
+router.post('/find', async function (ctx, next) {
+    let models = await Model.
+    find({})
+    ctx.body = models
+})
+
+router.post('/get', async function (ctx, next) {
+    // let users = await User.
+    // find({})
+    console.log(ctx.request.body)
+    let model = await Model.find(ctx.request.body)
+    console.log(model)
+    ctx.body = model
+})
+
+router.post('/update', async function (ctx, next) {
+    console.log(ctx.request.body)
+    let pbj = await Model.update({ _id: ctx.request.body._id }, ctx.request.body);
+    ctx.body = pbj
+})
+router.post('/delete', async function (ctx, next) {
+    console.log(ctx.request.body)
+    await Model.remove({ _id: ctx.request.body._id });
+    ctx.body = 'shibai '
+})
+module.exports = router
+```
+
+3、在app.js中加上school模块的路由：
+
+添加部分为：
+
+![app](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/app.png)
+
+projectName/app.js：
+
+```bash
+const Koa = require('koa')
+const app = new Koa()
+const views = require('koa-views')
+const json = require('koa-json')
+const onerror = require('koa-onerror')
+const bodyparser = require('koa-bodyparser')
+const logger = require('koa-logger')
+
+
+const mongoose = require('mongoose')
+const dbconfig = require('./db/config')
+mongoose.connect(dbconfig.dbs,{useNewUrlParser: true,useUnifiedTopology: true})
+const db = mongoose.connection
+db.on('error',console.error.bind(console,'connection error:'));
+db.once('open',function () {
+  console.log('mongoose 连接成功')
+});
+// error handler
+onerror(app)
+
+// middlewares
+app.use(bodyparser({
+  enableTypes:['json', 'form', 'text']
+}))
+app.use(json())
+app.use(logger())
+app.use(require('koa-static')(__dirname + '/public'))
+
+app.use(views(__dirname + '/views', {
+  extension: 'pug'
+}))
+
+// logger
+app.use(async (ctx, next) => {
+  const start = new Date()
+  await next()
+  const ms = new Date() - start
+  console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
+})
+
+
+
+const index = require('./routes/index')
+app.use(index.routes(), index.allowedMethods())
+const users = require('./routes/users')
+app.use(users.routes(), users.allowedMethods())
+const school =  quire('./routes/school'):
+app.use(school.routes(),school.allowedMethods())
+// error-handling
+
+// routes
+
+
+app.on('error', (err, ctx) => {
+  console.error('server error', err, ctx)
+});
+
+module.exports = app
+```
+
+###二、从前端（vue-admin-template）添加学校模块
+1、在src/views目录下添加school目录（模块），如图所示：
+
+![school](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/school.png)
+
+并在school目录下创建vue文件。
+
+- editor.vue为编辑文件，用于创建学校记录
+
+```bash
+  <div class="dashboard-container">
+  <div class="dashboard-container">    <el-form ref="form" :model="form" label-width="80px">
+      <el-form-item label="学校名称">
+        <el-input v-model="form.name"></el-input>
+      </el-form-item>
+      <el-form-item label="位置">
+        <el-input v-model="form.where"></el-input>
+      </el-form-item>
+      <el-form-item label="类型">
+        <el-input v-model="form.leixing"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onSubmit">立即创建</el-button>
+        <el-button>取消</el-button>
+      </el-form-item>
+
+    </el-form>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'school',
+    computed: {
+      ...mapGetters([
+        'name'
+      ])
+    },
+    data(){
+      return{
+        apiModel:'school',
+        form:{}
+      }
+    },
+    methods:{
+      onSubmit(){
+        console.log('222:', 222)
+        if(this.form._id){
+          this.$http.post(`/api/${this.apiModel}/update`,this.form).then(res => {
+            console.log('bar:', res)
+            this.$router.push({path:this.apiModel})
+            this.form={}
+          })
+        }else
+        {
+          this.$http.post('/api/'+this.apiModel+'/add',this.form).then(res => {
+            console.log('bar:', res)
+            this.$router.push({path:this.apiModel})
+            this.form={}
+          })
+        }
+      }
+    },
+    mounted() {
+      if(this.$route.query._id){
+        this.$http.post('/api/'+this.apiModel+'/get',{_id:this.$route.query._id}).then(res => {
+          if(res&&res.length>0){
+            this.form = res[0]
+          }
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .dashboard {
+    &-container {
+      margin: 30px;
+    }
+    &-text {
+      font-size: 30px;
+      line-height: 46px;
+    }
+  }
+```
+index.vue为目录文件，用于显示结果:
+```bash
+<template>
+<template>
+  <div class="dashboard-container">
+    <el-table
+      :data="users"
+      style="width: 100%"
+      :row-class-name="tableRowClassName">
+<!--      <el-table-column-->
+<!--        prop="_id"-->
+<!--        label="学校_id"-->
+<!--        width="180">-->
+<!--      </el-table-column>-->
+      <el-table-column
+        prop="name"
+        label="学校名称"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="where"
+        label="位置"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="leixing"
+        label="类型">
+      </el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            @click="handleEdit(scope.$index, scope.row)">编辑
+          </el-button>
+          <el-button
+            size="mini"
+            type="danger"
+            @click="handleDelete(scope.$index, scope.row)">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'school',
+    computed: {
+      ...mapGetters([
+        'name'
+      ])
+    },
+    data() {
+      return {
+        apiModel:'school',
+        users: {}
+      }
+    },
+    methods: {
+      onSubmit() {
+        console.log(123434)
+      },
+      handleEdit(index, item) {
+        this.$router.push({ path: '/'+this.apiModel+'/editor', query: {_id:item._id} })
+      },
+      handleDelete(index, item) {
+        this.$http.post('/api/'+this.apiModel+'/delete', item).then(res => {
+          console.log('res:', res)
+          this.findUser()
+        })
+
+      },
+      findUser(){
+        this.$http.post('/api/'+this.apiModel+'/find', this.user).then(res => {
+          console.log('res:', res)
+          this.users = res
+        })
+      }
+    },
+    mounted() {
+      this.findUser()
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .dashboard {
+    &-container {
+      margin: 30px;
+    }
+
+    &-text {
+      font-size: 30px;
+      line-height: 46px;
+    }
+  }
+</style>  <div class="dashboard-container">
+    <el-table
+      :data="users"
+      style="width: 100%"
+      :row-class-name="tableRowClassName">
+<!--      <el-table-column-->
+<!--        prop="_id"-->
+<!--        label="学校_id"-->
+<!--        width="180">-->
+<!--      </el-table-column>-->
+      <el-table-column
+        prop="name"
+        label="学校名称"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="where"
+        label="位置"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="leixing"
+        label="类型">
+      </el-table-column>
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            @click="handleEdit(scope.$index, scope.row)">编辑
+          </el-button>
+          <el-button
+            size="mini"
+            type="danger"
+            @click="handleDelete(scope.$index, scope.row)">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'school',
+    computed: {
+      ...mapGetters([
+        'name'
+      ])
+    },
+    data() {
+      return {
+        apiModel:'school',
+        users: {}
+      }
+    },
+    methods: {
+      onSubmit() {
+        console.log(123434)
+      },
+      handleEdit(index, item) {
+        this.$router.push({ path: '/'+this.apiModel+'/editor', query: {_id:item._id} })
+      },
+      handleDelete(index, item) {
+        this.$http.post('/api/'+this.apiModel+'/delete', item).then(res => {
+          console.log('res:', res)
+          this.findUser()
+        })
+
+      },
+      findUser(){
+        this.$http.post('/api/'+this.apiModel+'/find', this.user).then(res => {
+          console.log('res:', res)
+          this.users = res
+        })
+      }
+    },
+    mounted() {
+      this.findUser()
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .dashboard {
+    &-container {
+      margin: 30px;
+    }
+
+    &-text {
+      font-size: 30px;
+      line-height: 46px;
+    }
+  }
+```
+在src里面的router/index.js中添加路由：
+```bash
+{
+    path: '/school',
+    component: Layout,
+    meta: { title: '学校管理', icon: 'example' },
+    redirect: 'school',
+    children: [{
+      path: 'school',
+      name: 'school',
+      component: () => import('@/views/school'),
+      meta: { title: '学校管理', icon: 'school' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/school/editor'),
+        meta: { title: '添加学校', icon: 'school' }
+      }]
+  },
+  
+ ```
+ 
+ 
