@@ -2436,3 +2436,893 @@ export default router
 #### 这样班级管理模块就构建好了，最终的效果图：
 
 ![class-effect](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/class-effect.png)
+
+## 学生管理篇
+（可将学校、学院、班级与学生关联起来）
+### 一、从后端（projectName）添加学生模块
+##### 1、在models目录下添加student.js：
+
+projectName/db/models/student.js：
+```bash
+const mongoose = require('mongoose')
+const Schema= mongoose.Schema
+const feld={
+    name: String,
+    //人物标签
+    age:Number,
+    student_number: Number,
+    gender:String,
+    school : { type: Schema.Types.ObjectId, ref: 'School' },
+    academy : { type: Schema.Types.ObjectId, ref: 'Academy' },
+    classs : { type: Schema.Types.ObjectId, ref: 'Classs' }
+}
+//自动添加更新时间创建时间:
+let personSchema = new mongoose.Schema(feld, {timestamps: {createdAt: 'created', updatedAt: 'updated'}})
+module.exports= mongoose.model('Student',personSchema)
+```
+##### 2、在routes目录下添加student.js：
+
+projectName/routes/student.js：
+```bash
+const router = require('koa-router')()
+let Model = require("../db/models/student");
+router.prefix('/student')
+
+router.get('/', function (ctx, next) {
+   ctx.body = 'this is a users response!'
+})
+
+router.post('/add', async function (ctx, next) {
+   console.log(ctx.request.body)
+   let model = new Model(ctx.request.body);
+   model = await model.save();
+   console.log('user',model)
+   ctx.body = model
+})
+
+router.post('/find', async function (ctx, next) {
+   let models = await Model.
+   find({}).populate('classs').populate('academy').populate('school')
+   ctx.body = models
+})
+
+router.post('/get', async function (ctx, next) {
+   // let users = await User.
+   // find({})
+   console.log(ctx.request.body)
+   let model = await Model.find(ctx.request.body)
+   console.log(model)
+   ctx.body = model
+})
+
+router.post('/update', async function (ctx, next) {
+   console.log(ctx.request.body)
+   let pbj = await Model.update({ _id: ctx.request.body._id }, ctx.request.body);
+   ctx.body = pbj
+})
+router.post('/delete', async function (ctx, next) {
+   console.log(ctx.request.body)
+   await Model.remove({ _id: ctx.request.body._id });
+   ctx.body = 'shibai '
+})
+module.exports = router
+```
+#####3、在app.js中加上student模块的路由：
+
+添加部分为：
+
+![student-route](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-route.png)
+
+projectName/app.js：
+
+```bash
+const Koa = require('koa')
+const app = new Koa()
+const views = require('koa-views')
+const json = require('koa-json')
+const onerror = require('koa-onerror')
+const bodyparser = require('koa-bodyparser')
+const logger = require('koa-logger')
+
+
+const mongoose = require('mongoose')
+const dbconfig = require('./db/config')
+mongoose.connect(dbconfig.dbs,{useNewUrlParser: true,useUnifiedTopology: true})
+const db = mongoose.connection
+db.on('error',console.error.bind(console,'connection error:'));
+db.once('open',function () {
+  console.log('mongoose 连接成功')
+});
+// error handler
+onerror(app)
+
+// middlewares
+app.use(bodyparser({
+  enableTypes:['json', 'form', 'text']
+}))
+app.use(json())
+app.use(logger())
+app.use(require('koa-static')(__dirname + '/public'))
+
+app.use(views(__dirname + '/views', {
+  extension: 'pug'
+}))
+
+// logger
+app.use(async (ctx, next) => {
+  const start = new Date()
+  await next()
+  const ms = new Date() - start
+  console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
+})
+
+
+// routes
+const index = require('./routes/index')
+app.use(index.routes(), index.allowedMethods())
+const users = require('./routes/users')
+app.use(users.routes(), users.allowedMethods())
+const school = require('./routes/school')
+app.use(school.routes(),school.allowedMethods())
+const academy = require('./routes/academy')
+app.use(academy.routes(), academy.allowedMethods())
+const classs = require('./routes/classs')
+app.use(classs.routes(), classs.allowedMethods())
+const student = require('./routes/student')
+app.use(student.routes(), student.allowedMethods())
+// error-handling
+
+
+
+
+app.on('error', (err, ctx) => {
+  console.error('server error', err, ctx)
+});
+
+module.exports = app
+```
+####二、从前端（vue-admin-template）添加学生模块
+#####1、在src/views目录下添加student目录（模块），如图所示：
+![student-content](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-content.png)
+
+在student目录下添加editor.vue：
+
+vue-admin-template/src/views/student/editor.vue：
+```bash
+<template>
+<template>
+ <div class="dashboard-container">
+   <el-form ref="form" :model="form" label-width="80px">
+     <!--      编辑框：学校选择列表-->
+     <el-form-item label="所属学校">
+       <el-select v-model="form.school" placeholder="请选择" @change="schoolChange">
+         <el-option
+           v-for="item in schools"
+           :key="item._id"
+           :label="item.name"
+           :value="item._id">
+         </el-option>
+       </el-select>
+     </el-form-item>
+     <!--      编辑框：学院选择列表-->
+     <el-form-item label="所属学院">
+       <el-select v-model="form.academy" placeholder="请选择">
+         <el-option
+           v-for="item in academys"
+           :key="item._id"
+           :label="item.name"
+           :value="item._id">
+         </el-option>
+       </el-select>
+     </el-form-item>
+     <!--      编辑框：班级选择列表-->
+     <el-form-item label="所属班级">
+       <el-select v-model="form.classs" placeholder="请选择">
+         <el-option
+           v-for="item in classs"
+           :key="item._id"
+           :label="item.name"
+           :value="item._id">
+         </el-option>
+       </el-select>
+     </el-form-item>
+
+     <el-form-item label="用户名">
+       <el-input v-model="form.name"></el-input>
+     </el-form-item>
+     <el-form-item label="年龄">
+       <el-input v-model="form.age"></el-input>
+     </el-form-item>
+     <el-form-item label="学号">
+       <el-input v-model="form.student_number"></el-input>
+     </el-form-item>
+     <el-form-item label="性别">
+       <el-input v-model="form.gender"></el-input>
+     </el-form-item>
+     <el-form-item>
+       <el-button type="primary" @click="onSubmit">立即创建</el-button>
+       <el-button>取消</el-button>
+     </el-form-item>
+   </el-form>
+ </div>
+</template>
+
+<script>
+ import { mapGetters } from 'vuex'
+
+ export default {
+   name: 'student',
+   computed: {
+     ...mapGetters([
+       'name'
+     ])
+   },
+   data(){
+     return{
+       schools:[],
+       academys:[],
+       classs:[],
+       //列表内容
+       options: [
+       ],
+       apiModel:'student',
+       form:{}
+     }
+   },
+   methods:{
+     onSubmit(){
+       if(this.form._id){
+         this.$http.post(`/api/${this.apiModel}/update`,this.form).then(res => {
+           console.log('bar:', res)
+           this.$router.push({path:this.apiModel})
+           this.form={}
+         })
+       }else
+       {
+         this.$http.post('/api/'+this.apiModel+'/add',this.form).then(res => {
+           console.log('bar:', res)
+           this.$router.push({path:this.apiModel})
+           this.form={}
+         })
+       }
+     },
+     schoolChange(val1){
+       //显示学院选择栏目
+       this.$http.post('/api/academy/get',{school:val1}).then(res => {
+         if(res&&res.length>0){
+           this.academys = res
+           console.log('res:', res)
+         }
+       })
+     }
+   },
+   mounted() {
+     if(this.$route.query._id){
+       this.$http.post('/api/'+this.apiModel+'/get',{_id:this.$route.query._id}).then(res => {
+         if(res&&res.length>0){
+           this.form = res[0]
+           this.schoolChange(this.form.school)
+         }
+       })
+     }
+
+     //显示学校选择栏目
+     this.$http.post('/api/school/find').then(res => {
+       if(res&&res.length>0){
+         this.schools = res
+         console.log('res:', res)
+       }
+     })
+
+     //显示班级栏目
+     this.$http.post('/api/classs/find').then(res => {
+       if(res&&res.length>0){
+         this.classs = res
+         console.log('res:', res)
+       }
+     })
+   }
+ }
+</script>
+
+<style lang="scss" scoped>
+ .dashboard {
+   &-container {
+     margin: 30px;
+   }
+   &-text {
+     font-size: 30px;
+     line-height: 46px;
+   }
+ }
+</style> <div class="dashboard-container">
+   <el-form ref="form" :model="form" label-width="80px">
+     <!--      编辑框：学校选择列表-->
+     <el-form-item label="所属学校">
+       <el-select v-model="form.school" placeholder="请选择" @change="schoolChange">
+         <el-option
+           v-for="item in schools"
+           :key="item._id"
+           :label="item.name"
+           :value="item._id">
+         </el-option>
+       </el-select>
+     </el-form-item>
+     <!--      编辑框：学院选择列表-->
+     <el-form-item label="所属学院">
+       <el-select v-model="form.academy" placeholder="请选择">
+         <el-option
+           v-for="item in academys"
+           :key="item._id"
+           :label="item.name"
+           :value="item._id">
+         </el-option>
+       </el-select>
+     </el-form-item>
+     <!--      编辑框：班级选择列表-->
+     <el-form-item label="所属班级">
+       <el-select v-model="form.classs" placeholder="请选择">
+         <el-option
+           v-for="item in classs"
+           :key="item._id"
+           :label="item.name"
+           :value="item._id">
+         </el-option>
+       </el-select>
+     </el-form-item>
+
+     <el-form-item label="用户名">
+       <el-input v-model="form.name"></el-input>
+     </el-form-item>
+     <el-form-item label="年龄">
+       <el-input v-model="form.age"></el-input>
+     </el-form-item>
+     <el-form-item label="学号">
+       <el-input v-model="form.student_number"></el-input>
+     </el-form-item>
+     <el-form-item label="性别">
+       <el-input v-model="form.gender"></el-input>
+     </el-form-item>
+     <el-form-item>
+       <el-button type="primary" @click="onSubmit">立即创建</el-button>
+       <el-button>取消</el-button>
+     </el-form-item>
+   </el-form>
+ </div>
+</template>
+
+<script>
+ import { mapGetters } from 'vuex'
+
+ export default {
+   name: 'student',
+   computed: {
+     ...mapGetters([
+       'name'
+     ])
+   },
+   data(){
+     return{
+       schools:[],
+       academys:[],
+       classs:[],
+       //列表内容
+       options: [
+       ],
+       apiModel:'student',
+       form:{}
+     }
+   },
+   methods:{
+     onSubmit(){
+       if(this.form._id){
+         this.$http.post(`/api/${this.apiModel}/update`,this.form).then(res => {
+           console.log('bar:', res)
+           this.$router.push({path:this.apiModel})
+           this.form={}
+         })
+       }else
+       {
+         this.$http.post('/api/'+this.apiModel+'/add',this.form).then(res => {
+           console.log('bar:', res)
+           this.$router.push({path:this.apiModel})
+           this.form={}
+         })
+       }
+     },
+     schoolChange(val1){
+       //显示学院选择栏目
+       this.$http.post('/api/academy/get',{school:val1}).then(res => {
+         if(res&&res.length>0){
+           this.academys = res
+           console.log('res:', res)
+         }
+       })
+     }
+   },
+   mounted() {
+     if(this.$route.query._id){
+       this.$http.post('/api/'+this.apiModel+'/get',{_id:this.$route.query._id}).then(res => {
+         if(res&&res.length>0){
+           this.form = res[0]
+           this.schoolChange(this.form.school)
+         }
+       })
+     }
+
+     //显示学校选择栏目
+     this.$http.post('/api/school/find').then(res => {
+       if(res&&res.length>0){
+         this.schools = res
+         console.log('res:', res)
+       }
+     })
+
+     //显示班级栏目
+     this.$http.post('/api/classs/find').then(res => {
+       if(res&&res.length>0){
+         this.classs = res
+         console.log('res:', res)
+       }
+     })
+   }
+ }
+</script>
+
+<style lang="scss" scoped>
+ .dashboard {
+   &-container {
+     margin: 30px;
+   }
+   &-text {
+     font-size: 30px;
+     line-height: 46px;
+   }
+ }
+```
+
+在student目录下添加index.vue：
+
+vue-admin-template/src/views/student/index.vue：
+
+```bash
+<template>
+<template>
+  <div class="dashboard-container">
+    <el-table
+      :data="users"
+      style="width: 100%"
+      :row-class-name="tableRowClassName">
+      <el-table-column
+        prop="name"
+        label="名字"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="age"
+        label="年龄"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="student_number"
+        label="学号">
+      </el-table-column>
+      <el-table-column
+        prop="gender"
+        label="性别">
+      </el-table-column>
+      <!--      列表添加项目
+      -->
+      <el-table-column
+        prop="school"
+        label="学校名称"
+        width="180">
+        <template slot-scope="scope" >
+          <span class="" v-if="scope.row.school">
+            <el-tag
+              :type="scope.row.school.name === '深圳信息职业技术学院' ? 'primary' : 'success'"
+              disable-transitions>{{scope.row.school.name}}</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="academy"
+        label="学院名称"
+        width="180">
+        <template slot-scope="scope" >
+          <span class="" v-if="scope.row.academy">
+            <el-tag
+              :type="scope.row.academy.name === '软件学院' ? 'primary' : 'success'"
+              disable-transitions>{{scope.row.academy.name}}</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="classs"
+        label="班级名称"
+        width="180">
+        <template slot-scope="scope" >
+          <span class="" v-if="scope.row.classs">
+            <el-tag
+              :type="scope.row.classs.name === '18软工4-3' ? 'primary' : 'success'"
+              disable-transitions>{{scope.row.classs.name}}</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            @click="handleEdit(scope.$index, scope.row)">编辑
+          </el-button>
+          <el-button
+            size="mini"
+            type="danger"
+            @click="handleDelete(scope.$index, scope.row)">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'student',
+    computed: {
+      ...mapGetters([
+        'name'
+      ])
+    },
+    data() {
+      return {
+        apiModel:'student',
+        users: {}
+      }
+    },
+    methods: {
+      onSubmit() {
+        console.log(123434)
+      },
+      handleEdit(index, item) {
+        this.$router.push({ path: '/'+this.apiModel+'/editor', query: {_id:item._id} })
+      },
+      handleDelete(index, item) {
+        this.$http.post('/api/'+this.apiModel+'/delete', item).then(res => {
+          console.log('res:', res)
+          this.findUser()
+        })
+
+      },
+      findUser(){
+        this.$http.post('/api/'+this.apiModel+'/find', this.user).then(res => {
+          console.log('res:', res)
+          this.users = res
+        })
+      }
+    },
+    mounted() {
+      this.findUser()
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .dashboard {
+    &-container {
+      margin: 30px;
+    }
+
+    &-text {
+      font-size: 30px;
+      line-height: 46px;
+    }
+  }
+</style>  <div class="dashboard-container">
+    <el-table
+      :data="users"
+      style="width: 100%"
+      :row-class-name="tableRowClassName">
+      <el-table-column
+        prop="name"
+        label="名字"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="age"
+        label="年龄"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="student_number"
+        label="学号">
+      </el-table-column>
+      <el-table-column
+        prop="gender"
+        label="性别">
+      </el-table-column>
+      <!--      列表添加项目
+      -->
+      <el-table-column
+        prop="school"
+        label="学校名称"
+        width="180">
+        <template slot-scope="scope" >
+          <span class="" v-if="scope.row.school">
+            <el-tag
+              :type="scope.row.school.name === '深圳信息职业技术学院' ? 'primary' : 'success'"
+              disable-transitions>{{scope.row.school.name}}</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="academy"
+        label="学院名称"
+        width="180">
+        <template slot-scope="scope" >
+          <span class="" v-if="scope.row.academy">
+            <el-tag
+              :type="scope.row.academy.name === '软件学院' ? 'primary' : 'success'"
+              disable-transitions>{{scope.row.academy.name}}</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column
+        prop="classs"
+        label="班级名称"
+        width="180">
+        <template slot-scope="scope" >
+          <span class="" v-if="scope.row.classs">
+            <el-tag
+              :type="scope.row.classs.name === '18软工4-3' ? 'primary' : 'success'"
+              disable-transitions>{{scope.row.classs.name}}</el-tag>
+          </span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="操作">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            @click="handleEdit(scope.$index, scope.row)">编辑
+          </el-button>
+          <el-button
+            size="mini"
+            type="danger"
+            @click="handleDelete(scope.$index, scope.row)">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+  import { mapGetters } from 'vuex'
+
+  export default {
+    name: 'student',
+    computed: {
+      ...mapGetters([
+        'name'
+      ])
+    },
+    data() {
+      return {
+        apiModel:'student',
+        users: {}
+      }
+    },
+    methods: {
+      onSubmit() {
+        console.log(123434)
+      },
+      handleEdit(index, item) {
+        this.$router.push({ path: '/'+this.apiModel+'/editor', query: {_id:item._id} })
+      },
+      handleDelete(index, item) {
+        this.$http.post('/api/'+this.apiModel+'/delete', item).then(res => {
+          console.log('res:', res)
+          this.findUser()
+        })
+
+      },
+      findUser(){
+        this.$http.post('/api/'+this.apiModel+'/find', this.user).then(res => {
+          console.log('res:', res)
+          this.users = res
+        })
+      }
+    },
+    mounted() {
+      this.findUser()
+    }
+  }
+</script>
+
+<style lang="scss" scoped>
+  .dashboard {
+    &-container {
+      margin: 30px;
+    }
+
+    &-text {
+      font-size: 30px;
+      line-height: 46px;
+    }
+  }
+```
+####效果图：
+
+![student-effect](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-effect.png)
+
+#####2、在router下的index.js中添加student模块的路由：
+添加部分：
+
+![student-route2](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-route2.png)
+
+vue-admin-template/src/router/index.js：
+
+```bash
+import Vue from 'vue'
+import Router from 'vue-router'
+
+Vue.use(Router)
+
+/* Layout */
+import Layout from '@/layout'
+
+/**
+ * Note: sub-menu only appear when route children.length >= 1
+ * Detail see: https://panjiachen.github.io/vue-element-admin-site/guide/essentials/router-and-nav.html
+ *
+ * hidden: true                   if set true, item will not show in the sidebar(default is false)
+ * alwaysShow: true               if set true, will always show the root menu
+ *                                if not set alwaysShow, when item has more than one children route,
+ *                                it will becomes nested mode, otherwise not show the root menu
+ * redirect: noRedirect           if set noRedirect will no redirect in the breadcrumb
+ * name:'router-name'             the name is used by <keep-alive> (must set!!!)
+ * meta : {
+    roles: ['admin','editor']    control the page roles (you can set multiple roles)
+    title: 'title'               the name show in sidebar and breadcrumb (recommend set)
+    icon: 'svg-name'             the icon show in the sidebar
+    breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
+    activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
+  }
+ */
+
+/**
+ * constantRoutes
+ * a base page that does not have permission requirements
+ * all roles can be accessed
+ */
+export const constantRoutes = [
+  {
+    path: '/login',
+    component: () => import('@/views/login/index'),
+    hidden: true
+  },
+
+  {
+    path: '/school',
+    component: Layout,
+    meta: { title: '学校管理', icon: 'example' },
+    redirect: 'school',
+    children: [{
+      path: 'school',
+      name: 'school',
+      component: () => import('@/views/school/index'),
+      meta: { title: '学校管理', icon: 'school' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/school/editor'),
+        meta: { title: '添加学校', icon: 'school' }
+      }]
+  },
+
+  {
+    path: '/academy',
+    component: Layout,
+    meta: { title: '学院管理', icon: 'example' },
+    redirect: 'academy',
+    children: [{
+      path: 'academy',
+      name: 'academy',
+      component: () => import('@/views/academy/index'),
+      meta: { title: '学院管理', icon: 'academy' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/academy/editor'),
+        meta: { title: '添加学院', icon: 'academy' }
+      }]
+  },
+
+  {
+    path: '/classs',
+    component: Layout,
+    meta: { title: '班级管理', icon: 'example' },
+    redirect: 'classs',
+    children: [{
+      path: 'classs',
+      name: 'classs',
+      component: () => import('@/views/classs/index'),
+      meta: { title: '班级管理', icon: 'classs' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/classs/editor'),
+        meta: { title: '添加班级', icon: 'classs' }
+      }]
+  },
+
+  {
+    path: '/student',
+    component: Layout,
+    meta: { title: '学生管理', icon: 'example' },
+    redirect: 'student',
+    children: [{
+      path: 'student',
+      name: 'student',
+      component: () => import('@/views/student/index'),
+      meta: { title: '学生管理', icon: 'student' }
+    },
+      {
+        path: 'editor',
+        name: 'editor',
+        component: () => import('@/views/student/editor'),
+        meta: { title: '添加学生', icon: 'student' }
+      }]
+  },
+
+  {
+    path: '/404',
+    component: () => import('@/views/404'),
+    hidden: true
+  },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/dashboard',
+    children: [{
+      path: 'dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/dashboard/index'),
+      meta: { title: 'Dashboard', icon: 'dashboard' }
+    }]
+  },
+  // 404 page must be placed at the end !!!
+  { path: '*', redirect: '/404', hidden: true }
+]
+
+const createRouter = () => new Router({
+  // mode: 'history', // require service support
+  scrollBehavior: () => ({ y: 0 }),
+  routes: constantRoutes
+})
+
+const router = createRouter()
+
+// Detail see: https://github.com/vuejs/vue-router/issues/1234#issuecomment-357941465
+export function resetRouter() {
+  const newRouter = createRouter()
+  router.matcher = newRouter.matcher // reset router
+}
+
+export default router
+```
+###效果图：
+
+![student-effect2](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/student-effect2.png)
