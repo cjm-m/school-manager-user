@@ -27,7 +27,7 @@ npm run dev
 
 ![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/function.png)
 
-[Interface]!(https://github.com/cjm-m/school-manager-user/screenshots/Interface.png)
+![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/Interface.png)
 
 浏览器访问 [http://localhost:9528](http://localhost:9528)
 
@@ -121,7 +121,7 @@ npm install --save es6-promise
 
 http.js存放位置
  
-[Axios]!(https://github.com/cjm-m/school-manager-user/screenshots/Axios.png)
+![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/Axios.png)
 
 http.js ↓
 
@@ -211,7 +211,7 @@ export default Vue.prototype.$http = Axios;
 
 配置axios代理：
 
-[agent]!(https://github.com/cjm-m/school-manager-user/screenshots/agent.png)
+![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/agent.png)
 
 ```bash
 'use strict'
@@ -370,7 +370,7 @@ import http from './utils/http'
 Vue.use(http)
 ```
 
-[index]!(https://github.com/cjm-m/school-manager-user/screenshots/index.png)
+![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/index.png)
 
 index.vue ↓
 
@@ -753,6 +753,6 @@ npm run dev
 
 如下结果代表成功连接数据库
 
-[connect]!(https://github.com/cjm-m/school-manager-user/screenshots/connect.png)
+![function](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/connect.png)
 
 
