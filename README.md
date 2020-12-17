@@ -112,7 +112,7 @@ export function resetRouter() {
 export default router
 ```
 
-#安装ES6语法插件
+# 安装ES6语法插件
 ```bash
 npm install --save es6-promise
 ```
