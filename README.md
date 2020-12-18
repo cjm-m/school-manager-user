@@ -4133,5 +4133,4 @@ export function resetRouter() {
 export default router
 ```
 ### 效果图如下：
-
 ![teacher-effect2](https://github.com/cjm-m/school-manager-user/tree/main/screenshots/teacher-effect2.png)
